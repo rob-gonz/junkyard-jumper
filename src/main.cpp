@@ -1,62 +1,48 @@
 #include <Arduino.h>
 #include <TFT_eSPI.h>
 #include "sensors/BNO055Sensor.h"
+#include "util/BluetoothManager.h"
+#include "util/RocketStateManager.h"
 
-TFT_eSPI tft = TFT_eSPI();
-BNO055Sensor bnoSensor;
+/* PIN Definitions*/
+
+// I2C Pins
+#define SDA_PIN 1
+#define SCL_PIN 2
+
+TFT_eSPI tft = TFT_eSPI();   // TFT display object
+BNO055Sensor bnoSensor;     // BNO055 sensor object
+BluetoothManager btManager; // Bluetooth manager object
+RocketStateManager& rocketStateManager = RocketStateManager::getInstance();
 
 void setup() {
+  Serial.begin(115200); // Initialize serial monitor early
+  
+  /* -------------------- TFT Display Initialization ---------------------*/
   tft.init();
   tft.setRotation(2);
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE);
   tft.setTextSize(2);
   tft.drawString("Initializing", 10, 10);
+  /* **********************************************************************/
+  
+  /* -------------------- BNO055 Sensor Initialization ---------------------*/
+  bnoSensor.begin(SDA_PIN, SCL_PIN); // Pass SDA and SCL pins to the begin method
+  /* **********************************************************************/
 
-  Serial.begin(115200);
-  bnoSensor.begin();
+  btManager.begin();
 }
 
 void loop() {
-  sensors_event_t orientationEvent;
-  bnoSensor.getOrientation(orientationEvent);
+  // Update rocket state manager with sensor data
+  rocketStateManager.updateTimeSinceLastStateUpdate(millis());
+  // Add calls to update other state variables as needed
 
-  sensors_event_t accelerationEvent;
-  bnoSensor.getAcceleration(accelerationEvent);
+  rocketStateManager.evaluateState();
 
-  tft.fillScreen(TFT_BLACK);
-  tft.setCursor(10, 10);
-  tft.print("Orientation");
-  tft.setCursor(10, 30);
-  tft.print("X: "); tft.print(orientationEvent.orientation.x, 4);
-  tft.setCursor(10, 50);
-  tft.print("Y: "); tft.print(orientationEvent.orientation.y, 4);
-  tft.setCursor(10, 70);
-  tft.print("Z: "); tft.print(orientationEvent.orientation.z, 4);
-
-  tft.setCursor(10, 90);
-  tft.print("Acceleration");
-  tft.setCursor(10, 110);
-  tft.print("X: "); tft.print(accelerationEvent.acceleration.x, 4);
-  tft.setCursor(10, 130);
-  tft.print("Y: "); tft.print(accelerationEvent.acceleration.y, 4);
-  tft.setCursor(10, 150);
-  tft.print("Z: "); tft.print(accelerationEvent.acceleration.z, 4);
-
-  Serial.print("X: "); Serial.print(orientationEvent.orientation.x, 4);
-  Serial.print("\tY: "); Serial.print(orientationEvent.orientation.y, 4);
-  Serial.print("\tZ: "); Serial.println(orientationEvent.orientation.z, 4);
-
-  Serial.print("Accel X: "); Serial.print(accelerationEvent.acceleration.x, 4);
-  Serial.print("\tY: "); Serial.print(accelerationEvent.acceleration.y, 4);
-  Serial.print("\tZ: "); Serial.println(accelerationEvent.acceleration.z, 4);
-
-  // Check for maximum measurable acceleration
-  if (abs(accelerationEvent.acceleration.x) >= 39.24 || 
-      abs(accelerationEvent.acceleration.y) >= 39.24 || 
-      abs(accelerationEvent.acceleration.z) >= 39.24) {
-    Serial.println("Max measurable acceleration reached!");
-  }
+  bnoSensor.tftOutputUpdate(tft); // TFT display update from BNO055 sensor data
+  btManager.sendStatusMessage("Status update");
 
   delay(500);
 }
