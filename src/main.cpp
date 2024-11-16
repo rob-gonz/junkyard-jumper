@@ -31,7 +31,12 @@ void setup() {
   bnoSensor.begin(SDA_PIN, SCL_PIN); // Pass SDA and SCL pins to the begin method
   /* **********************************************************************/
 
+  /* -------------------- Bluetooth Manager Initialization ---------------------*/
   btManager.begin();
+  /* **********************************************************************/
+
+  // Initialize rocket state manager variables
+  rocketStateManager.initStateVariables();
 }
 
 void loop() {
@@ -42,7 +47,9 @@ void loop() {
   rocketStateManager.evaluateState();
 
   bnoSensor.tftOutputUpdate(tft); // TFT display update from BNO055 sensor data
-  btManager.sendStatusMessage("Status update");
+  // btManager.sendStatusMessage("Status update");
+
+  rocketStateManager.displayState(true, true); // Display rocket state on serial monitor and Bluetooth
 
   delay(500);
 }

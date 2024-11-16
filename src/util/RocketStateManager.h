@@ -1,4 +1,3 @@
-
 #ifndef ROCKET_STATE_MANAGER_H
 #define ROCKET_STATE_MANAGER_H
 
@@ -18,6 +17,8 @@ class RocketStateManager {
 public:
   static RocketStateManager& getInstance();
 
+  void initStateVariables();
+
   void updateTimeSinceLastStateUpdate(unsigned long time);
   void updateGPSCoordinates(float latitude, float longitude);
   void updateGPSAltitude(float altitude);
@@ -25,7 +26,9 @@ public:
   void updateAltitudeFromPressure(float altitude);
   void updateOrientation(float x, float y, float z);
   void updateFlightStage(FlightStage stage);
+
   void evaluateState();
+  void displayState(bool toSerial, bool toBluetooth); // Updated method declaration
 
 private:
   RocketStateManager() = default;
