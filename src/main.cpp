@@ -1,22 +1,46 @@
+// Core System Libraries
 #include <Arduino.h>
 #include <TFT_eSPI.h>
+#include <HardwareSerial.h>
+
+// Custom Sensor Libraries
 #include "sensors/BNO055Sensor.h"
+#include "sensors/AdafruitGPSSensor.h"
+
+// Custom Utility Libraries
 #include "util/BluetoothManager.h"
 #include "util/RocketStateManager.h"
 
-/* PIN Definitions*/
 
+
+/*---- PIN Definitions ----*/
 // I2C Pins
 #define SDA_PIN 1
 #define SCL_PIN 2
 
-TFT_eSPI tft = TFT_eSPI();   // TFT display object
-BNO055Sensor bnoSensor;     // BNO055 sensor object
-BluetoothManager btManager; // Bluetooth manager object
-RocketStateManager& rocketStateManager = RocketStateManager::getInstance();
+// GPS Pins
+#define GPS_RX_PIN 18
+#define GPS_TX_PIN 17
+/**************************/
+
+/* Communication Serials*/
+HardwareSerial GPS_Serial(1); // Define Serial1 as HardwareSerial instance
+
+
+
+/*---- Global Object Declarations ----*/
+TFT_eSPI tft = TFT_eSPI();                                                    // TFT display object
+BNO055Sensor bnoSensor;                                                       // BNO055 sensor object
+BluetoothManager& btManager = BluetoothManager::getInstance();                // Bluetooth LE Communication manager object
+RocketStateManager& rocketStateManager = RocketStateManager::getInstance();   // Rocket state manager object
+AdafruitGPSSensor* gpsSensor;                                                 // [POINTER] Adafruit GPS sensor object
+/**************************************/
 
 void setup() {
+  // Initialize Serial Monitors
   Serial.begin(115200); // Initialize serial monitor early
+  GPS_Serial.begin(9600, SERIAL_8N1, GPS_RX_PIN, GPS_TX_PIN); // Initialize Serial1 with RX and TX pins
+
   
   /* -------------------- TFT Display Initialization ---------------------*/
   tft.init();
@@ -35,6 +59,11 @@ void setup() {
   btManager.begin();
   /* **********************************************************************/
 
+  /* -------------------- Adafruit GPS Sensor Initialization ---------------------*/
+  gpsSensor = new AdafruitGPSSensor(GPS_Serial); // Create an instance of AdafruitGPSSensor
+  gpsSensor->begin(); //Initialize the GPS sensor
+  /* **********************************************************************/
+  
   // Initialize rocket state manager variables
   rocketStateManager.initStateVariables();
 }
@@ -42,15 +71,82 @@ void setup() {
 void loop() {
   // Update rocket state manager with sensor data
   rocketStateManager.updateTimeSinceLastStateUpdate(millis());
-  // Add calls to update other state variables as needed
 
+  if (btManager.isCommandAvailable()) rocketStateManager.executeBluetoothCommand(btManager); // Execute Bluetooth command if available
+
+  // Evaluate the current state of the rocket and update the flight stage as needed
   rocketStateManager.evaluateState();
+
+  switch (rocketStateManager.getFlightStage()) {
+    case PRE_LAUNCH:
+      // Handle PRE_LAUNCH state
+      Serial.println("-------------- PRE-LAUNCH MODE ACTIVE --------------");
+      btManager.sendStatusMessage("-------------- PRE-LAUNCH MODE ACTIVE -------------- \n");
+      // Detect launch and change state to IGNITION
+      break;
+    case IGNITION:
+      // Handle IGNITION state
+      break;
+    case POWERED_ASCENT:
+      // Handle POWERED_ASCENT state
+      break;
+    case COAST:
+      // Handle COAST state
+      break;
+    case APOGEE:
+      // Handle APOGEE state
+      break;
+    case DESCENT:
+      // Handle DESCENT state
+      break;
+    case TOUCH_DOWN:
+      // Handle TOUCH_DOWN state
+      break;
+    case DEBUG:
+      // Handle DEBUG state
+      Serial.println("-------------- DEBUG MODE ACTIVE --------------");
+      btManager.sendStatusMessage("-------------- DEBUG MODE ACTIVE -------------- \n");
+      break;
+  }
 
   bnoSensor.tftOutputUpdate(tft); // TFT display update from BNO055 sensor data
   // btManager.sendStatusMessage("Status update");
 
-  rocketStateManager.displayState(true, true); // Display rocket state on serial monitor and Bluetooth
+  rocketStateManager.displayState(btManager, true, true); // Display rocket state on serial monitor and Bluetooth
 
-  delay(500);
+  gpsSensor->update();
+  // gpsSensor->outputData(Serial);
+  // gpsSensor->outputData(btManager);
+
+  delay(1000);
 }
 
+
+
+
+/*
+TODO:
+* Test how much memory is used by the current code.
+* Test if disabling the BluetoothManager::sendStatusMessage() method call increases speed drastically.
+* 
+
+
+
+
+
+
+
+
+
+
+Notes:
+
+read raw response form a serial communication port sending data to the board:
+  // String response = "";
+  // while(GPS_Serial.available()) {
+  //   char c = GPS_Serial.read();
+  //   response += c;
+  // }
+  // Serial.print("[loop]GPS RAW Response: ");
+  // Serial.println(response);
+*/

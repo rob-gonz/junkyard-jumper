@@ -1,6 +1,12 @@
 #include "BluetoothManager.h"
 #include <Arduino.h>
 
+
+BluetoothManager& BluetoothManager::getInstance() {
+    static BluetoothManager instance;
+    return instance;
+}
+
 BluetoothManager::BluetoothManager() : pServer(nullptr), pService(nullptr), pTxCharacteristic(nullptr), pRxCharacteristic(nullptr) {}
 
 void BluetoothManager::begin() {
@@ -29,7 +35,7 @@ void BluetoothManager::begin() {
     // Serial.println("Bluetooth device is now advertising");
 }
 
-void BluetoothManager::sendStatusMessage(const std::string& message) {
+void BluetoothManager::sendStatusMessage(const String& message) {
     if (pTxCharacteristic) {
         pTxCharacteristic->setValue(message);
         pTxCharacteristic->notify();
@@ -37,9 +43,17 @@ void BluetoothManager::sendStatusMessage(const std::string& message) {
 }
 
 void BluetoothManager::MyCallbacks::onWrite(NimBLECharacteristic* pCharacteristic) {
-    std::string value = pCharacteristic->getValue();
-    Serial.println("Received command: " + String(value.c_str()));
-    // Handle received command
+    String value = pCharacteristic->getValue();
+    // Serial.println("Received command: " + String(value.c_str()));
+    BluetoothManager::getInstance().lastCommand = value;
+}
 
-    //TODO: Whatever my State Manager eventually ends up being we'll copy the command to the state manager here
+String BluetoothManager::getLastCommand(bool doNotClear) {
+    String command = lastCommand;
+    if (!doNotClear) lastCommand = "";
+    return command;
+}
+
+bool BluetoothManager::isCommandAvailable() {
+    return lastCommand.length() > 0;
 }

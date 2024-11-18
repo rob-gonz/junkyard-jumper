@@ -2,7 +2,23 @@
 #define ROCKET_STATE_MANAGER_H
 
 #include <Arduino.h>
+#include "BluetoothManager.h"
 
+/* 
+--- Define measured stages of the flight. ---
+Measured stages of the flight are used to determine the current state of the rocket
+based on the sensor data collected. It's a derived state.
+
+PRE_LAUNCH: [DEFAULT] The rocket is on the launch pad and has not yet launched.
+IGNITION: The rocket has launched and the engines are firing. (Basically indicates start - very short stage)
+POWERED_ASCENT: The rocket is ascending under power and is experiencing positive acceleration.
+COAST: The rocket is still ascending but the engines are no longer firing and experiencing negative acceleration.
+APOGEE: The rocket has reached its highest point and is now descending. Acceleration is not trustworthy as wind can affect it.
+DESCENT: The rocket is descending and is experiencing. Acceleration should be near the value of gravity
+DEBUG: This is a debug state that is used to test the state manager. - code in here will change from time to time. Only accessable via blutooth Serial Commands
+
+
+*/
 enum FlightStage {
   PRE_LAUNCH,
   IGNITION,
@@ -10,25 +26,46 @@ enum FlightStage {
   COAST,
   APOGEE,
   DESCENT,
-  TOUCH_DOWN
+  TOUCH_DOWN,
+  DEBUG
 };
 
 class RocketStateManager {
 public:
-  static RocketStateManager& getInstance();
 
+
+
+  // Initialization functions
+  static RocketStateManager& getInstance();
   void initStateVariables();
 
+  // Update functions
   void updateTimeSinceLastStateUpdate(unsigned long time);
   void updateGPSCoordinates(float latitude, float longitude);
   void updateGPSAltitude(float altitude);
   void updateAirPressure(float pressure);
   void updateAltitudeFromPressure(float altitude);
   void updateOrientation(float x, float y, float z);
-  void updateFlightStage(FlightStage stage);
+  bool updateFlightStage(FlightStage stage);
+
+  // Accessor functions
+  FlightStage getFlightStage() { return flightStage; }
+
+  /* Flight Monitoring Functions*/
+  // Pre-launch monitoring for state change
+
+
+  /*****************************/
+
+
+
 
   void evaluateState();
-  void displayState(bool toSerial, bool toBluetooth); // Updated method declaration
+  void executeBluetoothCommand(BluetoothManager &btManager); // Updated method declaration
+
+
+  // communication functions
+  void displayState(BluetoothManager &btManager, bool toSerial, bool toBluetooth); // Updated method declaration
 
 private:
   RocketStateManager() = default;
@@ -41,6 +78,8 @@ private:
   float orientationX;
   float orientationY;
   float orientationZ;
+
+  // This variable should ONLY be updated through the updateFlightStage method. To do otherwise raises safety concerns.
   FlightStage flightStage;
 };
 

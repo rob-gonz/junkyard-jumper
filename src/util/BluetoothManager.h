@@ -6,11 +6,15 @@
 
 class BluetoothManager {
 public:
-    BluetoothManager();
+    static BluetoothManager& getInstance();
     void begin();
-    void sendStatusMessage(const std::string& message);
+    void sendStatusMessage(const String& message);
+
+    bool isCommandAvailable();
+    String getLastCommand(bool doNotClear = false);
 
 private:
+    BluetoothManager();
     class MyCallbacks : public NimBLECharacteristicCallbacks {
         void onWrite(NimBLECharacteristic* pCharacteristic) override;
     };
@@ -19,6 +23,8 @@ private:
     NimBLEService* pService;
     NimBLECharacteristic* pTxCharacteristic;
     NimBLECharacteristic* pRxCharacteristic;
+
+    String lastCommand;
 };
 
 #endif // BLUETOOTH_MANAGER_H
