@@ -4,12 +4,12 @@
 #include <HardwareSerial.h>
 
 // Custom Sensor Libraries
-#include "sensors/BNO055Sensor.h"
-#include "sensors/AdafruitGPSSensor.h"
+#include "BNO055Sensor.h"
+#include "AdafruitGPSSensor.h"
 
 // Custom Utility Libraries
-#include "util/BluetoothManager.h"
-#include "util/RocketStateManager.h"
+#include "BluetoothManager.h"
+#include "RocketStateManager.h"
 
 
 
@@ -71,8 +71,10 @@ void setup() {
 void loop() {
   // Update rocket state manager with sensor data
   rocketStateManager.updateTimeSinceLastStateUpdate(millis());
-
+  // command handling
   if (btManager.isCommandAvailable()) rocketStateManager.executeBluetoothCommand(btManager); // Execute Bluetooth command if available
+
+
 
   // Evaluate the current state of the rocket and update the flight stage as needed
   rocketStateManager.evaluateState();
@@ -81,7 +83,7 @@ void loop() {
     case PRE_LAUNCH:
       // Handle PRE_LAUNCH state
       Serial.println("-------------- PRE-LAUNCH MODE ACTIVE --------------");
-      btManager.sendStatusMessage("-------------- PRE-LAUNCH MODE ACTIVE -------------- \n");
+      btManager.sendStatusMessage("---- PRE-LAUNCH ACTIVE ---- \n");
       // Detect launch and change state to IGNITION
       break;
     case IGNITION:
@@ -105,14 +107,17 @@ void loop() {
     case DEBUG:
       // Handle DEBUG state
       Serial.println("-------------- DEBUG MODE ACTIVE --------------");
-      btManager.sendStatusMessage("-------------- DEBUG MODE ACTIVE -------------- \n");
+      btManager.sendStatusMessage("---- DEBUG MODE ACTIVE ---- \n");
+      gpsSensor->outputDebugData(Serial);
+      gpsSensor->outputDebugData(btManager);
+      delay(5000); // Slow down for debug mode. 
       break;
   }
 
   bnoSensor.tftOutputUpdate(tft); // TFT display update from BNO055 sensor data
   // btManager.sendStatusMessage("Status update");
 
-  rocketStateManager.displayState(btManager, true, true); // Display rocket state on serial monitor and Bluetooth
+  // rocketStateManager.displayState(btManager, true, true); // Display rocket state on serial monitor and Bluetooth
 
   gpsSensor->update();
   // gpsSensor->outputData(Serial);

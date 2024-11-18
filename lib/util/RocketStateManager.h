@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include "BluetoothManager.h"
 
+
 /* 
 --- Define measured stages of the flight. ---
 Measured stages of the flight are used to determine the current state of the rocket
@@ -40,12 +41,17 @@ public:
   void initStateVariables();
 
   // Update functions
-  void updateTimeSinceLastStateUpdate(unsigned long time);
-  void updateGPSCoordinates(float latitude, float longitude);
-  void updateGPSAltitude(float altitude);
-  void updateAirPressure(float pressure);
-  void updateAltitudeFromPressure(float altitude);
-  void updateOrientation(float x, float y, float z);
+  void updateGPSState(float latitude, float longitude, float altitud);
+  void updatePressureState(float pressure);
+  void updateOrientationState(float x, float y, float z);
+  void upateAccelerationState(float x, float y, float z);
+
+  void updateTimeSinceLastStateUpdate(unsigned long time); // unneeded
+  void updateGPSCoordinates(float latitude, float longitude);// unneeded
+  void updateGPSAltitude(float altitude);// unneeded
+  void updateAirPressure(float pressure);// unneeded
+  void updateAltitudeFromPressure(float altitude);// unneeded
+  void updateOrientation(float x, float y, float z);// unneeded
   bool updateFlightStage(FlightStage stage);
 
   // Accessor functions

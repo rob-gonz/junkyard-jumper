@@ -4,7 +4,7 @@
 #define NO_SW_SERIAL 
 
 #include <Adafruit_GPS.h>
-#include "../util/BluetoothManager.h"
+#include "BluetoothManager.h"
 
 class AdafruitGPSSensor {
 public:
@@ -13,8 +13,8 @@ public:
     AdafruitGPSSensor(HardwareSerial &serialPort);
     void begin();
     void update();
-    void outputData(Stream &output);
-    void outputData(BluetoothManager &btManager);
+    void outputDebugData(Stream &output);
+    void outputDebugData(BluetoothManager &btManager);
     bool hasFix();
     void clearGPSData();
 
