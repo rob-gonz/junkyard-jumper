@@ -69,15 +69,23 @@ void setup() {
 }
 
 void loop() {
-  // Update rocket state manager with sensor data
-  rocketStateManager.updateTimeSinceLastStateUpdate(millis());
   // command handling
   if (btManager.isCommandAvailable()) rocketStateManager.executeBluetoothCommand(btManager); // Execute Bluetooth command if available
 
-
-
+  /* --------------------- Update State Manager with Sensor Data ------------------------- */
+  rocketStateManager.updateTimeSinceLastStateUpdate(millis());
+  rocketStateManager.updateGPSState(gpsSensor->getLatitude(), gpsSensor->getLongitude(), gpsSensor->getAltitude(), gpsSensor->getSpeedKmh(), gpsSensor->hasFix());
+  rocketStateManager.updateAirPressure(0); // Placeholder for air pressure sensor data
+  // rocketStateManager.updateOrientationState(0, 0, 0); // Placeholder for orientation sensor data
+  // rocketStateManager.upateAccelerationState(0, 0, 0); // Placeholder for acceleration sensor data
+  /************************************************************************************** */
+  
+  
   // Evaluate the current state of the rocket and update the flight stage as needed
   rocketStateManager.evaluateState();
+
+
+
 
   switch (rocketStateManager.getFlightStage()) {
     case PRE_LAUNCH:
@@ -110,6 +118,7 @@ void loop() {
       btManager.sendStatusMessage("---- DEBUG MODE ACTIVE ---- \n");
       gpsSensor->outputDebugData(Serial);
       gpsSensor->outputDebugData(btManager);
+      rocketStateManager.displayState(btManager, true, true);
       delay(5000); // Slow down for debug mode. 
       break;
   }

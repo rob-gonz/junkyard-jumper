@@ -1,7 +1,8 @@
 #include "RocketStateManager.h"
 #include "BluetoothManager.h"
-#include <string>
 
+
+/* ---------------------   Initialization Functions ------------------------------*/
 RocketStateManager& RocketStateManager::getInstance() {
   static RocketStateManager instance;
   return instance;
@@ -9,8 +10,8 @@ RocketStateManager& RocketStateManager::getInstance() {
 
 void RocketStateManager::initStateVariables() {
   timeSinceLastStateUpdate = 0;
-  gpsLatitude = 0;
-  gpsLongitude = 0;
+  gpsLatituteDegrees = 0;
+  gpsLongitudeDegrees = 0;
   gpsAltitude = 0;
   airPressure = 0;
   altitudeFromPressure = 0;
@@ -19,14 +20,25 @@ void RocketStateManager::initStateVariables() {
   orientationZ = 0;
   flightStage = PRE_LAUNCH;
 }
+/******************************************************************************* */
+
+/* ---------------------   Update Functions ------------------------------*/
+void RocketStateManager::updateGPSState(float latitude, float longitude, float altitude, float speedKmh, bool hasFix) {
+  gpsLatituteDegrees = latitude;
+  gpsLongitudeDegrees = longitude;
+  gpsAltitude = altitude;
+  gpsSpeedKmh = speedKmh;
+  gpsHasFix = hasFix;
+}
+/*************************************************************************/
 
 void RocketStateManager::updateTimeSinceLastStateUpdate(unsigned long time) {
   timeSinceLastStateUpdate = time;
 }
 
 void RocketStateManager::updateGPSCoordinates(float latitude, float longitude) {
-  gpsLatitude = latitude;
-  gpsLongitude = longitude;
+  gpsLatituteDegrees = latitude;
+  gpsLongitudeDegrees = longitude;
 }
 
 void RocketStateManager::updateGPSAltitude(float altitude) {
@@ -108,16 +120,22 @@ void RocketStateManager::evaluateState() {
 }
 
 void RocketStateManager::displayState(BluetoothManager &btManager, bool toSerial, bool toBluetooth) {
-  String stateInfo = "State: " + String(flightStage) +
-                     ", Time: " + String(timeSinceLastStateUpdate) +
-                     ", GPS: (" + String(gpsLatitude, 6) + ", " + String(gpsLongitude, 6) + ")" +
-                     ", Altitude: " + String(gpsAltitude) +
-                     ", Pressure: " + String(airPressure) +
+  String stateInfo = "State: " + String(flightStage) + "\n"
+                     ", Time: " + String(timeSinceLastStateUpdate) + "\n";
+  if (gpsHasFix) {
+    stateInfo +=     ", GPS Loc: (" + String(gpsLatituteDegrees, 6) + ", " + String(gpsLongitudeDegrees, 6) + ")\n" +
+                     ", GPS Altitude(m): " + String(gpsAltitude) + "\n"
+                     ", GPS Speed (km/h): " + String(gpsSpeedKmh) + "\n";
+  } else {
+    stateInfo +=     ", GPS Fix: No \n";
+  }
+
+  stateInfo +=       ", Pressure: " + String(airPressure) + "\n"
                      ", Orientation: (" + String(orientationX) + ", " + String(orientationY) + ", " + String(orientationZ) + ")\n";
   if (toSerial) {
     Serial.println(stateInfo);
   }
   if (toBluetooth) {
-    btManager.sendStatusMessage(stateInfo.c_str());
+    btManager.sendStatusMessage(stateInfo);
   }
 }

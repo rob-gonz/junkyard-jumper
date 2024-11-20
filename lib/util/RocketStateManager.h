@@ -41,7 +41,7 @@ public:
   void initStateVariables();
 
   // Update functions
-  void updateGPSState(float latitude, float longitude, float altitud);
+  void updateGPSState(float latitude, float longitude, float altitude, float speedKmh, bool hasFix);
   void updatePressureState(float pressure);
   void updateOrientationState(float x, float y, float z);
   void upateAccelerationState(float x, float y, float z);
@@ -76,9 +76,11 @@ public:
 private:
   RocketStateManager() = default;
   unsigned long timeSinceLastStateUpdate;
-  float gpsLatitude;
-  float gpsLongitude;
+  bool gpsHasFix;
+  float gpsLatituteDegrees;
+  float gpsLongitudeDegrees;
   float gpsAltitude;
+  float gpsSpeedKmh;
   float airPressure;
   float altitudeFromPressure;
   float orientationX;

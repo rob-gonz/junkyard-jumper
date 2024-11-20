@@ -8,6 +8,8 @@
 
 #define GPSECHO false
 
+/* ------------------------- Initialization functions -------------------------*/
+
 AdafruitGPSSensor::AdafruitGPSSensor(HardwareSerial &serialPort) : serialPort(serialPort) {
     // serialPort.begin(9600, SERIAL_8N1, 18, 17);  // TODO: fix this
     this->gps = Adafruit_GPS(&serialPort);
@@ -22,6 +24,10 @@ void AdafruitGPSSensor::begin() {
     // gps.sendCommand(PGCMD_ANTENNA);
 }
 
+/**************************************************************************** */
+
+
+/* ------------------------- GPS data update functions -------------------------*/
 void AdafruitGPSSensor::update() {
     /*
     Update should be called frequently to ensure that the GPS sensor data is up to date.
@@ -38,7 +44,29 @@ void AdafruitGPSSensor::update() {
     gps.parse(gps.lastNMEA());
 }
 
+void AdafruitGPSSensor::clearGPSData() {
+    /*
+    Helper function to clear out any queue dat from the GPS module 
+    so that the next time we attempt to read data, we get the most recent data.
+    */
+    char c;
+    while(!gps.newNMEAreceived()) {
+        c = gps.read();
+    }
+    gps.parse(gps.lastNMEA());
 
+    while(!gps.newNMEAreceived()) {
+        c = gps.read();
+    }
+    gps.parse(gps.lastNMEA());
+    
+}
+
+/**************************************************************************** */
+
+
+
+/* ------------------------- Debug output functions -------------------------*/
 // TODO: Need a recordData method to store the data or something so that it can be logged in sthe state manager
 void AdafruitGPSSensor::outputDebugData(Stream &output) {
    
@@ -94,20 +122,4 @@ void AdafruitGPSSensor::outputDebugData(BluetoothManager &btManager) {
 }
 
 
-void AdafruitGPSSensor::clearGPSData() {
-    /*
-    Helper function to clear out any queue dat from the GPS module 
-    so that the next time we attempt to read data, we get the most recent data.
-    */
-    char c;
-    while(!gps.newNMEAreceived()) {
-        c = gps.read();
-    }
-    gps.parse(gps.lastNMEA());
-
-    while(!gps.newNMEAreceived()) {
-        c = gps.read();
-    }
-    gps.parse(gps.lastNMEA());
-    
-}
+/**************************************************************************** */
