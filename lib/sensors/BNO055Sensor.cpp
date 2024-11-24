@@ -4,6 +4,7 @@
 BNO055Sensor::BNO055Sensor() : bno(55, 0x28) {}
 
 // Initializes the BNO055 sensor and sets up I2C communication
+//TODO: return False if initialization fails
 void BNO055Sensor::begin(int sdaPin, int sclPin) {
     Wire.begin(sdaPin, sclPin); // Initialize I2C communication with specified SDA and SCL pins
     if (!bno.begin()) {
@@ -25,11 +26,6 @@ void BNO055Sensor::getOrientation(sensors_event_t &event) {
 // Retrieves the acceleration data from the BNO055 sensor
 void BNO055Sensor::getAcceleration(sensors_event_t &event) {
     bno.getEvent(&event, Adafruit_BNO055::VECTOR_ACCELEROMETER);
-    
-    // // Debugging output to check if the sensor is providing valid data
-    // Serial.print("Debug: Acceleration X: "); Serial.print(event.acceleration.x);
-    // Serial.print(" Y: "); Serial.print(event.acceleration.y);
-    // Serial.print(" Z: "); Serial.println(event.acceleration.z);
 }
 
 void BNO055Sensor::tftOutputUpdate(TFT_eSPI &tft) {

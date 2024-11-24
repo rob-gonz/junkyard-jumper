@@ -42,15 +42,15 @@ public:
 
   // Update functions
   void updateGPSState(float latitude, float longitude, float altitude, float speedKmh, bool hasFix);
-  void updatePressureState(float pressure);
   void updateOrientationState(float x, float y, float z);
   void upateAccelerationState(float x, float y, float z);
+  void updateAglAltitude(float altitude);
+  void updateAslAltitude(float altitude);
+
+
 
   void updateTimeSinceLastStateUpdate(unsigned long time); // unneeded
-  void updateGPSCoordinates(float latitude, float longitude);// unneeded
-  void updateGPSAltitude(float altitude);// unneeded
-  void updateAirPressure(float pressure);// unneeded
-  void updateAltitudeFromPressure(float altitude);// unneeded
+  // void updateAirPressure(float pressure);// unneeded
   void updateOrientation(float x, float y, float z);// unneeded
   bool updateFlightStage(FlightStage stage);
 
@@ -79,13 +79,18 @@ private:
   bool gpsHasFix;
   float gpsLatituteDegrees;
   float gpsLongitudeDegrees;
-  float gpsAltitude;
+  float gpsAltitude; // meters (above sea level)
   float gpsSpeedKmh;
-  float airPressure;
-  float altitudeFromPressure;
+  // float airPressure; // hPa
+  float aglAltitudeFromPressure; // meters (above ground level)
+  float aslAltitudeFromPressure; // meters (above sea level)
   float orientationX;
   float orientationY;
   float orientationZ;
+  float accelerationX;
+  float accelerationY;
+  float accelerationZ;
+  //TODO: I think I can detect Rotation and acceleration from the BNO055 sensor
 
   // This variable should ONLY be updated through the updateFlightStage method. To do otherwise raises safety concerns.
   FlightStage flightStage;

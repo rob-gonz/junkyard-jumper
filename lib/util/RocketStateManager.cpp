@@ -13,8 +13,8 @@ void RocketStateManager::initStateVariables() {
   gpsLatituteDegrees = 0;
   gpsLongitudeDegrees = 0;
   gpsAltitude = 0;
-  airPressure = 0;
-  altitudeFromPressure = 0;
+  aslAltitudeFromPressure = 0;
+  aglAltitudeFromPressure = 0;
   orientationX = 0;
   orientationY = 0;
   orientationZ = 0;
@@ -26,31 +26,22 @@ void RocketStateManager::initStateVariables() {
 void RocketStateManager::updateGPSState(float latitude, float longitude, float altitude, float speedKmh, bool hasFix) {
   gpsLatituteDegrees = latitude;
   gpsLongitudeDegrees = longitude;
-  gpsAltitude = altitude;
+  gpsAltitude = altitude; // meters
   gpsSpeedKmh = speedKmh;
   gpsHasFix = hasFix;
 }
-/*************************************************************************/
-
+/**
+ * Update Time Since Last state update
+ */
 void RocketStateManager::updateTimeSinceLastStateUpdate(unsigned long time) {
   timeSinceLastStateUpdate = time;
 }
 
-void RocketStateManager::updateGPSCoordinates(float latitude, float longitude) {
-  gpsLatituteDegrees = latitude;
-  gpsLongitudeDegrees = longitude;
+void RocketStateManager::updateAglAltitude(float altitude) {
+  aglAltitudeFromPressure = altitude;
 }
-
-void RocketStateManager::updateGPSAltitude(float altitude) {
-  gpsAltitude = altitude;
-}
-
-void RocketStateManager::updateAirPressure(float pressure) {
-  airPressure = pressure;
-}
-
-void RocketStateManager::updateAltitudeFromPressure(float altitude) {
-  altitudeFromPressure = altitude;
+void RocketStateManager::updateAslAltitude(float altitude) {
+  aslAltitudeFromPressure = altitude;
 }
 
 void RocketStateManager::updateOrientation(float x, float y, float z) {
@@ -58,6 +49,16 @@ void RocketStateManager::updateOrientation(float x, float y, float z) {
   orientationY = y;
   orientationZ = z;
 }
+
+void RocketStateManager::upateAccelerationState(float x, float y, float z) {
+  // Implement acceleration state update logic 
+  accelerationX = x;
+  accelerationY = y;
+  accelerationZ = z;
+}
+/*************************************************************************/
+
+
 
 bool RocketStateManager::updateFlightStage(FlightStage stage) {
   /*
@@ -130,8 +131,10 @@ void RocketStateManager::displayState(BluetoothManager &btManager, bool toSerial
     stateInfo +=     ", GPS Fix: No \n";
   }
 
-  stateInfo +=       ", Pressure: " + String(airPressure) + "\n"
-                     ", Orientation: (" + String(orientationX) + ", " + String(orientationY) + ", " + String(orientationZ) + ")\n";
+  stateInfo +=       ", AGL(m): " + String(aglAltitudeFromPressure) + "\n"
+                      ", ASL(m): " + String(aslAltitudeFromPressure) + "\n"
+                     ", Orientation: (" + String(orientationX) + ", " + String(orientationY) + ", " + String(orientationZ) + ")\n"
+                     ", Acceleration: (" + String(accelerationX) + ", " + String(accelerationY) + ", " + String(accelerationZ) + ")\n";
   if (toSerial) {
     Serial.println(stateInfo);
   }
